@@ -1,2 +1,60 @@
 {% extends 'onlinecourse/base.html' %}
-{% block title %}{{ course.name }} | OnlineCourse{% endblock %}{% block content %}<div class="mb-4"><a href="{% url 'onlinecourse:course_list' %}" class="text-decoration-none">&larr; All courses</a><h1 class="mt-2">{{ course.name }}</h1><p class="lead">{{ course.description }}</p></div><section class="card shadow-sm mb-4"><div class="card-header bg-white"><h2 class="h4 mb-0">Course lessons</h2></div><div class="list-group list-group-flush">{% for lesson in course.lessons.all %}<article class="list-group-item"><h3 class="h6 mb-1">Lesson {{ lesson.order }}: {{ lesson.title }}</h3><p class="mb-0 text-secondary">{{ lesson.content|linebreaksbr }}</p></article>{% empty %}<div class="list-group-item text-secondary">No lessons have been added yet.</div>{% endfor %}</div></section><section class="card shadow-sm"><div class="card-header bg-white"><h2 class="h4 mb-0">Practice exam</h2></div><div class="card-body">{% if course.questions.all %}{% if user.is_authenticated %}<form method="post" action="{% url 'onlinecourse:submit' course.id %}">{% csrf_token %}{% for question in course.questions.all %}<fieldset class="mb-4 border-bottom pb-3"><legend class="h6">{{ forloop.counter }}. {{ question.text }} <span class="badge text-bg-secondary">{{ question.grade }} point{{ question.grade|pluralize }}</span></legend>{% for choice in question.choices.all %}<div class="form-check mt-2"><input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}"><label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.text }}</label></div>{% endfor %}</fieldset>{% endfor %}<button class="btn btn-success" type="submit">Submit exam</button></form>{% else %}<div class="alert alert-info mb-0">Please <a href="{% url 'admin:login' %}">sign in</a> before submitting the practice exam.</div>{% endif %}{% else %}<p class="text-secondary mb-0">No exam questions are available for this course yet.</p>{% endif %}</div></section>{% endblock %}
+{% block title %}{{ course.name }} | OnlineCourse{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'onlinecourse:course_list' %}">All courses</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ course.name }}</li>
+  </ol>
+</nav>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h1 class="card-title">{{ course.name }}</h1>
+    <p class="card-text">{{ course.description }}</p>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-primary text-white"><h2 class="h4 mb-0">Course lessons</h2></div>
+  <div class="list-group list-group-flush">
+    {% for lesson in course.lessons.all %}
+      <article class="list-group-item">
+        <h3 class="h5">Lesson {{ lesson.order }}: {{ lesson.title }}</h3>
+        <p class="mb-0">{{ lesson.content|linebreaksbr }}</p>
+      </article>
+    {% empty %}
+      <div class="list-group-item text-muted">No lessons have been added yet.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-success text-white"><h2 class="h4 mb-0">Practice exam</h2></div>
+  <div class="card-body">
+    {% if course.questions.all %}
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'onlinecourse:submit' course.id %}">
+          {% csrf_token %}
+          {% for question in course.questions.all %}
+            <fieldset class="mb-4 border-bottom pb-3">
+              <legend class="h5">{{ forloop.counter }}. {{ question.question_text }} <span class="badge bg-secondary">{{ question.grade }} point{{ question.grade|pluralize }}</span></legend>
+              {% for choice in question.choices.all %}
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}">
+                  <label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
+                </div>
+              {% endfor %}
+            </fieldset>
+          {% endfor %}
+          <button class="btn btn-success" type="submit">Submit exam</button>
+        </form>
+      {% else %}
+        <div class="alert alert-info">Please <a href="{% url 'admin:login' %}">sign in</a> before submitting the practice exam.</div>
+      {% endif %}
+    {% else %}
+      <p class="text-muted mb-0">No exam questions are available for this course yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
