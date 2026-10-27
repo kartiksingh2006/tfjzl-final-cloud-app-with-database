@@ -42,31 +42,48 @@ class Lesson(models.Model):
         return f'{self.course.name} — {self.title}'
 
 
+class Enrollment(models.Model):
+    student = models.ForeignKey(Learner, on_delete=models.CASCADE, related_name='enrollments')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
+    date_enrolled = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'course')
+        ordering = ['-date_enrolled']
+
+    def __str__(self):
+        return f'{self.student} - {self.course.name}'
+
+
 class Question(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='questions')
-    text = models.CharField(max_length=1000)
+    question_text = models.CharField(max_length=1000)
     order = models.PositiveIntegerField(default=1)
     grade = models.PositiveIntegerField(default=1, help_text='Points awarded for a correct answer.')
 
     class Meta:
         ordering = ['order', 'id']
 
+    def is_get_score(self, selected_ids):
+        correct_ids = set(self.choices.filter(is_correct=True).values_list('id', flat=True))
+        selected_ids = {int(choice_id) for choice_id in selected_ids}
+        return self.grade if correct_ids == selected_ids else 0
+
     def __str__(self):
-        return self.text
+        return self.question_text
 
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
-    text = models.CharField(max_length=500)
+    choice_text = models.CharField(max_length=500)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.text
+        return self.choice_text
 
 
 class Submission(models.Model):
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='exam_submissions')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='submissions')
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='submissions')
     choices = models.ManyToManyField(Choice, related_name='submissions', blank=True)
     score = models.PositiveIntegerField(default=0)
     total = models.PositiveIntegerField(default=0)
@@ -76,4 +93,4 @@ class Submission(models.Model):
         ordering = ['-submitted_at']
 
     def __str__(self):
-        return f'{self.student} — {self.course} ({self.score}/{self.total})'
+        return f'{self.enrollment.student.user.username} - {self.enrollment.course.name}'
