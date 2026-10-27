@@ -1,0 +1,31 @@
+{% extends 'onlinecourse/base.html' %}
+{% block title %}Exam result | {{ course.name }}{% endblock %}
+{% block content %}
+<div class="card shadow-sm mb-4">
+  <div class="card-body text-center py-5">
+    {% if passed %}
+      <div class="display-4 mb-2">🎉</div>
+      <h1 class="text-success">Congratulations!</h1>
+      <p class="lead">You successfully passed the practice exam.</p>
+    {% else %}
+      <h1 class="text-primary">Exam completed</h1>
+      <p class="lead">Keep practicing and try again to improve your score.</p>
+    {% endif %}
+    <h2 class="display-5 fw-bold">{{ score }} / {{ total }}</h2>
+    <p class="fs-5">Score: {{ percentage }}%</p>
+    <p class="text-secondary">Course: {{ course.name }}</p>
+  </div>
+</div>
+<h2 class="h4 mb-3">Detailed exam results</h2>
+{% for row in result_rows %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h3 class="h6">{{ forloop.counter }}. {{ row.question.question_text }}</h3>
+      {% if row.is_correct %}<span class="badge bg-success">Correct</span>{% else %}<span class="badge bg-danger">Incorrect or unanswered</span>{% endif %}
+      <p class="mt-2 mb-1"><strong>Your answer:</strong> {{ row.selected.choice_text|default:'No answer selected' }}</p>
+      <p class="mb-0"><strong>Correct answer:</strong> {{ row.correct_choice.choice_text|default:'No correct choice configured' }}</p>
+    </div>
+  </div>
+{% endfor %}
+<a class="btn btn-primary" href="{% url 'onlinecourse:course_details' course.id %}">Back to course</a>
+{% endblock %}
