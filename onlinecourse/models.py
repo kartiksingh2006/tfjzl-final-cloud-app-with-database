@@ -75,7 +75,7 @@ class Question(models.Model):
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
-    choice_text = models.CharField(max_length=500)
+    choice_text = models.CharField(max_length=100)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):
@@ -93,4 +93,4 @@ class Submission(models.Model):
         ordering = ['-submitted_at']
 
     def __str__(self):
-        return f'{self.enrollment.student.user.username} - {self.enrollment.course.name}'
+        return f'{self.enrollment.student.user.username} - {self.enrollment.course.name} - {self.score}'
