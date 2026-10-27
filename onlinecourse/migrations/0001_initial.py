@@ -1,4 +1,4 @@
-# Generated for the Django Online Course Exam project.
+# Initial database schema for the online course exam application.
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
@@ -30,16 +30,22 @@ class Migration(migrations.Migration):
             ('order', models.PositiveIntegerField(default=1)),
             ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lessons', to='onlinecourse.course')),
         ], options={'ordering': ['order', 'id']}),
+        migrations.CreateModel(name='Enrollment', fields=[
+            ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+            ('date_enrolled', models.DateTimeField(auto_now_add=True)),
+            ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='enrollments', to='onlinecourse.course')),
+            ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='enrollments', to='onlinecourse.learner')),
+        ], options={'ordering': ['-date_enrolled'], 'unique_together': {('student', 'course')}}),
         migrations.CreateModel(name='Question', fields=[
             ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-            ('text', models.CharField(max_length=1000)),
+            ('question_text', models.CharField(max_length=1000)),
             ('order', models.PositiveIntegerField(default=1)),
             ('grade', models.PositiveIntegerField(default=1, help_text='Points awarded for a correct answer.')),
             ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='onlinecourse.course')),
         ], options={'ordering': ['order', 'id']}),
         migrations.CreateModel(name='Choice', fields=[
             ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-            ('text', models.CharField(max_length=500)),
+            ('choice_text', models.CharField(max_length=500)),
             ('is_correct', models.BooleanField(default=False)),
             ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='choices', to='onlinecourse.question')),
         ]),
@@ -48,8 +54,7 @@ class Migration(migrations.Migration):
             ('score', models.PositiveIntegerField(default=0)),
             ('total', models.PositiveIntegerField(default=0)),
             ('submitted_at', models.DateTimeField(auto_now_add=True)),
-            ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='submissions', to='onlinecourse.course')),
-            ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='exam_submissions', to=settings.AUTH_USER_MODEL)),
             ('choices', models.ManyToManyField(blank=True, related_name='submissions', to='onlinecourse.choice')),
+            ('enrollment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='submissions', to='onlinecourse.enrollment')),
         ], options={'ordering': ['-submitted_at']}),
     ]
