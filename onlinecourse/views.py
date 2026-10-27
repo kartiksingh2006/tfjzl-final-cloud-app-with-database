@@ -64,25 +64,41 @@ def show_exam_result(request, course_id, submission_id):
     if submission.enrollment.student.user_id != request.user.id and not request.user.is_staff:
         raise Http404('Submission not found.')
 
+    course = submission.enrollment.course
     selected_by_question = {choice.question_id: choice for choice in submission.choices.all()}
+
     result_rows = []
-    for question in submission.enrollment.course.questions.prefetch_related('choices').all():
+    total_score = 0
+    possible_score = 0
+    for question in course.questions.prefetch_related('choices').all():
         selected = selected_by_question.get(question.id)
+        selected_ids = [selected.id] if selected else []
+        grade = question.is_get_score(selected_ids)
+        possible = question.grade
+
+        total_score += grade
+        possible_score += possible
+
         correct_choice = next((choice for choice in question.choices.all() if choice.is_correct), None)
         result_rows.append({
             'question': question,
             'selected': selected,
+            'selected_ids': selected_ids,
             'correct_choice': correct_choice,
-            'is_correct': bool(selected and selected.is_correct),
+            'is_correct': grade > 0,
+            'grade': grade,
+            'possible': possible,
         })
 
-    percentage = round((submission.score / submission.total) * 100) if submission.total else 0
+    percentage = round((total_score / possible_score) * 100) if possible_score else 0
     return render(request, 'onlinecourse/exam_result_bootstrap.html', {
         'submission': submission,
-        'course': submission.enrollment.course,
+        'course': course,
         'result_rows': result_rows,
-        'score': submission.score,
-        'total': submission.total,
+        'score': total_score,
+        'total': possible_score,
+        'total_score': total_score,
+        'possible_score': possible_score,
         'percentage': percentage,
         'passed': percentage >= 60,
     })
