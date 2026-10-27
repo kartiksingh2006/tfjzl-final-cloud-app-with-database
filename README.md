@@ -4,12 +4,12 @@ This repository contains a Django online course app with course lessons and a mu
 
 ## Rubric deliverables
 
-- **Models:** [onlinecourse/models.py](onlinecourse/models.py) — `Question`, `Choice`, `Submission`
-- **Admin:** [onlinecourse/admin.py](onlinecourse/admin.py) — seven imported classes plus `QuestionInline`, `ChoiceInline`, `QuestionAdmin`, `LessonAdmin`
+- **Models:** [onlinecourse/models.py](onlinecourse/models.py) — `Question`, `Choice`, and `Submission`
+- **Admin:** [onlinecourse/admin.py](onlinecourse/admin.py) — seven imported application model classes plus `QuestionInline`, `ChoiceInline`, `QuestionAdmin`, and `LessonAdmin`
 - **Admin screenshot:** `docs/screenshots/03-admin-site.png` (capture locally after setup; instructions below)
-- **Course page:** [course_details_bootstrap.html](onlinecourse/templates/onlinecourse/course_details_bootstrap.html) — Bootstrap course details, lessons, questions, choices
+- **Course page:** [course_details_bootstrap.html](onlinecourse/templates/onlinecourse/course_details_bootstrap.html) — Bootstrap course details, lessons, questions, and choices
 - **Views:** [onlinecourse/views.py](onlinecourse/views.py) — `submit` and `show_exam_result`
-- **Routes:** [onlinecourse/urls.py](onlinecourse/urls.py) — URLs for submit and result
+- **Routes:** [onlinecourse/urls.py](onlinecourse/urls.py) — submission and result routes
 - **Final result screenshot:** `docs/screenshots/07-final.png` (capture locally after a successful mock exam; instructions below)
 
 ## Run locally
@@ -21,24 +21,25 @@ python -m venv .venv
 # Windows PowerShell: .venv\\Scripts\\Activate.ps1
 # macOS/Linux: source .venv/bin/activate
 python -m pip install -r requirements.txt
+python manage.py makemigrations onlinecourse
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Open <http://127.0.0.1:8000/admin/> and sign in. Create a course under **OnlineCourse → Courses**, add lessons, then add questions and at least two choices per question. Mark one choice per question as correct. Go to <http://127.0.0.1:8000/> and open the course. Sign in before submitting the exam.
+Open <http://127.0.0.1:8000/admin/> and sign in. Create an instructor or learner profile if useful, then create a course under **OnlineCourse → Courses**, add lessons, and add questions. Each question should have at least two choices; mark exactly one choice per question as correct. Open <http://127.0.0.1:8000/> and select the course. Sign in before submitting the exam.
 
-## Capture rubric screenshots
+## Capture required screenshots
 
 Use real screenshots from your running app, not placeholders.
 
-1. **03-admin-site:** at `/admin/`, show both the **Authentication and Authorization** and **OnlineCourse** sections in the same screenshot. Use Windows `Win + Shift + S` to save as `docs/screenshots/03-admin-site.png`.
-2. **07-final:** answer enough questions correctly for at least 60%, submit the exam, and capture the page showing **Congratulations!**, the score, and detailed results. Save as `docs/screenshots/07-final.png`.
+1. **03-admin-site:** Visit `/admin/` and make sure both the **Authentication and Authorization** and **OnlineCourse** sections are visible in the same screenshot. Save as `docs/screenshots/03-admin-site.png` (Windows: `Win + Shift + S`).
+2. **07-final:** Sign in on the site, answer enough questions correctly to score at least 60%, and submit. Capture the result page showing **Congratulations!**, the score, and detailed results. Save as `docs/screenshots/07-final.png`.
 
-Add these PNGs with git and push them to this repository before submitting the assignment.
+Add the two PNG files to this repository before submitting the assignment. The screenshot instructions are in [docs/screenshots/README.md](docs/screenshots/README.md).
 
 ## Implementation notes
 
-The exam totals the point value (`grade`) for all course questions. A submitted choice is accepted only if it belongs to the question it answers. A submission result is visible only to its student or staff. A score of 60% or higher passes.
+The maximum score is the sum of the `grade` values for a course's questions. A selected choice is accepted only when it belongs to the question being answered. Results are visible only to the submitting student or staff users. A score of 60% or higher passes.
 
-This is a local learning project. The included development secret key and `DEBUG=True` are not production settings. Before deployment, use environment-based secrets, configure allowed hosts and HTTPS, disable debug, and review Django's deployment checklist.
+This is a local learning project. The development secret key and `DEBUG=True` are not suitable for production. Before deployment, use an environment-based secret, configure allowed hosts and HTTPS, disable debug, and follow Django's deployment checklist.
