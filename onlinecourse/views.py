@@ -44,21 +44,22 @@ def submit(request, course_id):
         selected_choices.extend(valid_choices)
         score += question.is_get_score([choice.id for choice in valid_choices])
 
-    submission = Submission.objects.create(
-        enrollment=enrollment,
-        score=score,
-        total=total,
-    )
+    submission = Submission.objects.create(enrollment=enrollment, score=score, total=total)
     submission.choices.set(selected_choices)
-    return redirect('onlinecourse:show_exam_result', submission_id=submission.id)
+    return redirect(
+        'onlinecourse:show_exam_result',
+        course_id=course.id,
+        submission_id=submission.id,
+    )
 
 
 @login_required
-def show_exam_result(request, submission_id):
+def show_exam_result(request, course_id, submission_id):
     submission = get_object_or_404(
         Submission.objects.select_related('enrollment__student__user', 'enrollment__course')
         .prefetch_related('choices'),
         pk=submission_id,
+        enrollment__course_id=course_id,
     )
     if submission.enrollment.student.user_id != request.user.id and not request.user.is_staff:
         raise Http404('Submission not found.')
