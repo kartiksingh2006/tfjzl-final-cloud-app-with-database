@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import Group, User
-from .models import Course, Lesson, Instructor, Learner, Enrollment, Question, Choice, Submission
+from .models import Course, Lesson, Instructor, Learner, Question, Choice, Submission
 
 
 class ChoiceInline(admin.TabularInline):
@@ -52,12 +52,6 @@ class InstructorAdmin(admin.ModelAdmin):
 class LearnerAdmin(admin.ModelAdmin):
     list_display = ('user',)
     search_fields = ('user__username', 'user__email')
-
-
-@admin.register(Enrollment)
-class EnrollmentAdmin(admin.ModelAdmin):
-    list_display = ('student', 'course', 'date_enrolled')
-    list_filter = ('course',)
 
 
 @admin.register(Submission)
