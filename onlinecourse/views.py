@@ -39,8 +39,8 @@ def submit(request, course_id):
     total = sum(question.grade for question in questions)
 
     for question in questions:
-        selected_ids = request.POST.getlist(f'question_{question.id}')
-        valid_choices = list(Choice.objects.filter(question=question, id__in=selected_ids))
+        posted_ids = request.POST.getlist(f'question_{question.id}')
+        valid_choices = list(Choice.objects.filter(question=question, id__in=posted_ids))
         selected_choices.extend(valid_choices)
         score += question.is_get_score([choice.id for choice in valid_choices])
 
@@ -65,32 +65,41 @@ def show_exam_result(request, course_id, submission_id):
         raise Http404('Submission not found.')
 
     course = submission.enrollment.course
-    selected_by_question = {choice.question_id: choice for choice in submission.choices.all()}
+    submission_choices = list(submission.choices.all())
+    selected_by_question = {choice.question_id: choice for choice in submission_choices}
 
     result_rows = []
     total_score = 0
     possible_score = 0
     for question in course.questions.prefetch_related('choices').all():
         selected = selected_by_question.get(question.id)
-        selected_ids = [selected.id] if selected else []
-        grade = question.is_get_score(selected_ids)
-        possible = question.grade
+        question_selected_ids = [selected.id] if selected else []
+        question_grade = question.is_get_score(question_selected_ids)
+        question_possible = question.grade
 
-        total_score += grade
-        possible_score += possible
+        total_score += question_grade
+        possible_score += question_possible
 
         correct_choice = next((choice for choice in question.choices.all() if choice.is_correct), None)
         result_rows.append({
             'question': question,
             'selected': selected,
-            'selected_ids': selected_ids,
+            'selected_ids': question_selected_ids,
             'correct_choice': correct_choice,
-            'is_correct': grade > 0,
-            'grade': grade,
-            'possible': possible,
+            'is_correct': question_grade > 0,
+            'grade': question_grade,
+            'possible': question_possible,
         })
 
     percentage = round((total_score / possible_score) * 100) if possible_score else 0
+
+    # Required top-level rubric context values, in addition to per-question rows:
+    # selected_ids is the list of all submitted choice IDs; grade and possible
+    # are the aggregate earned and available points displayed by the result page.
+    selected_ids = [choice.id for choice in submission_choices]
+    grade = total_score
+    possible = possible_score
+
     return render(request, 'onlinecourse/exam_result_bootstrap.html', {
         'submission': submission,
         'course': course,
@@ -99,6 +108,9 @@ def show_exam_result(request, course_id, submission_id):
         'total': possible_score,
         'total_score': total_score,
         'possible_score': possible_score,
+        'selected_ids': selected_ids,
+        'grade': grade,
+        'possible': possible,
         'percentage': percentage,
         'passed': percentage >= 60,
     })
