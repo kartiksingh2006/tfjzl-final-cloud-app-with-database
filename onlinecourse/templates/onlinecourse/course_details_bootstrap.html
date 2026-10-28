@@ -1,71 +1,75 @@
-{% extends "onlinecourse/base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ course.name }} | Course Details</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <main class="container py-5">
+    <section class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h1 class="card-title">{{ course.name }}</h1>
+        <p class="card-text">{{ course.description }}</p>
+      </div>
+    </section>
 
-{% block title %}{{ course.name }} | Course Details{% endblock %}
+    <section class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h2 class="h4 mb-0">Lessons for {{ course.name }}</h2>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for lesson in course.lessons.all %}
+          <article class="list-group-item">
+            <h3 class="h5">Lesson {{ lesson.order }}: {{ lesson.title }}</h3>
+            <div>{{ lesson.content|linebreaks }}</div>
+          </article>
+        {% empty %}
+          <div class="list-group-item text-muted">No lessons are available for this course yet.</div>
+        {% endfor %}
+      </div>
+    </section>
 
-{% block content %}
-<main class="container py-4">
-  <section class="card shadow-sm mb-4">
-    <div class="card-body">
-      <h1 class="card-title">{{ course.name }}</h1>
-      <p class="card-text">{{ course.description }}</p>
-    </div>
-  </section>
-
-  <section class="card shadow-sm mb-4">
-    <div class="card-header bg-primary text-white">
-      <h2 class="h4 mb-0">Lessons for {{ course.name }}</h2>
-    </div>
-    <div class="list-group list-group-flush">
-      {% for lesson in course.lessons.all %}
-        <article class="list-group-item">
-          <h3 class="h5">Lesson {{ lesson.order }}: {{ lesson.title }}</h3>
-          <div>{{ lesson.content|linebreaks }}</div>
-        </article>
-      {% empty %}
-        <div class="list-group-item text-muted">No lessons are available for this course yet.</div>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="card shadow-sm mb-4">
-    <div class="card-header bg-success text-white">
-      <h2 class="h4 mb-0">Practice exam</h2>
-    </div>
-    <div class="card-body">
-      {% if user.is_authenticated %}
-        {% if course.questions.all %}
-          <form method="post" action="{% url 'onlinecourse:submit' course.id %}">
-            {% csrf_token %}
-            {% for question in course.questions.all %}
-              <fieldset class="mb-4 border-bottom pb-3">
-                <legend class="h5">
-                  {{ forloop.counter }}. {{ question.question_text }}
-                  <span class="badge bg-secondary">{{ question.grade }} point{{ question.grade|pluralize }}</span>
-                </legend>
-                {% for choice in question.choices.all %}
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio"
-                           name="question_{{ question.id }}"
-                           id="choice_{{ choice.id }}" value="{{ choice.id }}">
-                    <label class="form-check-label" for="choice_{{ choice.id }}">
-                      {{ choice.choice_text }}
-                    </label>
-                  </div>
-                {% endfor %}
-              </fieldset>
-            {% endfor %}
-            <button class="btn btn-success" type="submit">Submit exam</button>
-          </form>
+    <section class="card shadow-sm mb-4">
+      <div class="card-header bg-success text-white">
+        <h2 class="h4 mb-0">Practice exam</h2>
+      </div>
+      <div class="card-body">
+        {% if user.is_authenticated %}
+          {% if course.questions.all %}
+            <form method="post" action="{% url 'onlinecourse:submit' course.id %}">
+              {% csrf_token %}
+              {% for question in course.questions.all %}
+                <fieldset class="mb-4 border-bottom pb-3">
+                  <legend class="h5">
+                    {{ forloop.counter }}. {{ question.question_text }}
+                    <span class="badge bg-secondary">{{ question.grade }} point{{ question.grade|pluralize }}</span>
+                  </legend>
+                  {% for choice in question.choices.all %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio"
+                             name="question_{{ question.id }}"
+                             id="choice_{{ choice.id }}"
+                             value="{{ choice.id }}">
+                      <label class="form-check-label" for="choice_{{ choice.id }}">
+                        {{ choice.choice_text }}
+                      </label>
+                    </div>
+                  {% endfor %}
+                </fieldset>
+              {% endfor %}
+              <button class="btn btn-success" type="submit">Submit exam</button>
+            </form>
+          {% else %}
+            <p class="text-muted mb-0">No exam questions are available for this course yet.</p>
+          {% endif %}
         {% else %}
-          <p class="text-muted mb-0">No exam questions are available for this course yet.</p>
+          <div class="alert alert-info">Please sign in before taking the practice exam.</div>
         {% endif %}
-      {% else %}
-        <div class="alert alert-info">
-          Please <a href="{% url 'admin:login' %}">sign in</a> before taking the practice exam.
-        </div>
-      {% endif %}
-    </div>
-  </section>
-  <a class="btn btn-outline-secondary" href="{% url 'onlinecourse:course_list' %}">Back to all courses</a>
-</main>
-{% endblock %}
+      </div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
