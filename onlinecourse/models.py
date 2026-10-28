@@ -93,4 +93,4 @@ class Submission(models.Model):
         ordering = ['-submitted_at']
 
     def __str__(self):
-        return f'{self.enrollment.student.user.username} - {self.enrollment.course.name} - {self.score}'
+        return f'Submission {self.id} for enrollment {self.enrollment.id}'
